@@ -10,7 +10,20 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;900&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
+<style>
+  /* 1. 定義並載入你的專屬字體 */
+  @font-face {
+    font-family: 'SusuCustomFont'; /* 幫字體取個好記的名字 */
+    src: url('susu-font.ttf') format('truetype'); /* 這裡填寫你真實的字體檔案名稱 */
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+  }
 
+  /* 2. 強制將字體套用到整個網頁的所有元素 */
+  body, * {
+    font-family: 'SusuCustomFont', 'M PLUS Rounded 1c', 'Noto Sans TC', sans-serif !important;
+  }
   <style>
     body {
       font-family: 'M PLUS Rounded 1c', 'myfont.ttf', sans-serif;
