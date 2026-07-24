@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>酥酥老師教務大廳</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;900&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+  /* 1. 定義並載入你的專屬字體 */
+  @font-face {
+    font-family: 'SusuCustomFont'; 
+    src: url('myfont.ttf.ttf') format('truetype'); /* 替換成你真實的檔名 */
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  /* 2. 強制將字體套用到整個網頁的所有元素 */
+  body, * {
+    font-family: 'SusuCustomFont', 'M PLUS Rounded 1c', 'Noto Sans TC', sans-serif !important;
+  }
+  
+  /* 3. 其他原本的排版設定 */
+  body {
+    background-color: #fffaf0;
+    color: #5c4a40;
+    background-image: radial-gradient(#e6d5c3 1.5px, transparent 1.5px);
+    background-size: 24px 24px;
+  }
+  .hand-drawn-box {
+    background: #ffffff;
+    border: 3px solid #5c4a40;
+    border-radius: 16px 24px 16px 24px; 
+    box-shadow: 6px 6px 0px #e6d5c3;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+  .tool-card:hover {
+    box-shadow: 8px 8px 0px #d4baa0;
+    transform: translateY(-4px);
+  }
+  .tag {
+    position: absolute;
+    top: -12px;
+    right: 20px;
+    background: #e5989b;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 2px solid #5c4a40;
+    font-weight: 900;
+    font-size: 0.85rem;
+    transform: rotate(3deg);
+  }
+  .icon-wrapper {
+    width: 60px;
+    height: 60px;
+    background: #f4e3c5;
+    border: 2px dashed #5c4a40;
+    border-radius: 12px 20px 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+</style>
+</head>
+<body class="min-h-screen p-6 md:p-12 selection:bg-[#d4baa0] selection:text-[#5c4a40]">
+
+  <div class="max-w-4xl mx-auto">
+    
+    <!-- 歡迎區塊 -->
+    <header class="text-center mb-12 animate-fade-in-down">
+      <div class="w-24 h-24 mx-auto bg-white border-4 border-[#5c4a40] rounded-full flex items-center justify-center text-4xl shadow-[4px_4px_0px_#e6d5c3] mb-4">
+        ✨
+      </div>
+      <h1 class="text-3xl md:text-5xl font-black mb-3 text-[#5c4a40]">酥酥老師教務大廳</h1>
+      <p class="text-[#8c7a6b] font-bold tracking-widest text-lg">專屬個人的數位備課與行政中心</p>
+    </header>
+
+    <!-- 工具整合網格 -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      
+      <!-- 工具一：薪資結算 -->
+      <!-- href 連結請替換成你實際的薪資計算機 HTML 檔案名稱 -->
+      <a href="薪資計算機index.html" class="hand-drawn-box tool-card p-6 block cursor-pointer text-[#5c4a40] decoration-transparent">
+        <div class="tag" style="background: #74c69d;">結算必備</div>
+        <div class="icon-wrapper text-3xl">💰</div>
+        <h2 class="text-xl font-black mb-2">薪資結算小幫手</h2>
+        <p class="text-sm font-bold text-[#8c7a6b] leading-relaxed">
+          自動計算當月上課時數與金額，一鍵複製請款明細傳給家長。
+        </p>
+      </a>
+
+      <!-- 工具二：調課追蹤 -->
+      <!-- href 連結請替換成你實際的調課追蹤板 HTML 檔案名稱 -->
+      <a href="makeup.html" class="hand-drawn-box tool-card p-6 block cursor-pointer text-[#5c4a40] decoration-transparent">
+        <div class="icon-wrapper text-3xl">📅</div>
+        <h2 class="text-xl font-black mb-2">調課追蹤板</h2>
+        <p class="text-sm font-bold text-[#8c7a6b] leading-relaxed">
+          控管 2 次請假額度，追蹤待補課進度與原課程時數。
+        </p>
+      </a>
+
+      <!-- 未來擴充卡片 -->
+      <div class="hand-drawn-box p-6 flex flex-col items-center justify-center text-center border-dashed border-[#d4baa0] bg-transparent shadow-none">
+        <div class="w-12 h-12 rounded-full border-2 border-dashed border-[#d4baa0] flex items-center justify-center text-[#d4baa0] text-2xl mb-2">
+          +
+        </div>
+        <p class="text-sm font-bold text-[#b0a090]">未來還有什麼好點子呢？</p>
+      </div>
+
+    </div>
+
+    <footer class="mt-16 text-center text-sm font-bold text-[#b0a090]">
+      © 2026 酥酥老師專屬工具
+    </footer>
+
+  </div>
+
+</body>
+</html>
