@@ -1,30 +1,39 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
+  <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>酥酥老師薪資結算小幫手</title>
+  <title>酥酥老師教務大廳</title>
   
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
+  <!-- 引入 Google Fonts 日系手繪圓體 (Zen Maru Gothic & M PLUS Rounded 1c) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;900&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <style>
-    /* 1. 定義並載入你的專屬字體 */
-    @font-face {
-      font-family: 'SusuCustomFont'; 
-      src: url('susu-font.ttf') format('truetype'); 
-      font-weight: normal;
-      font-style: normal;
-      font-display: swap;
-    }
-
-    /* 2. 強制將字體套用到整個網頁的所有元素 */
+    /* 直接全站套用日系手繪圓體，再也不用管繁雜的檔案路徑！ */
     body, * {
-      font-family: 'SusuCustomFont', 'Noto Serif TC', sans-serif !important;
+      font-family: 'Zen Maru Gothic', 'M PLUS Rounded 1c', sans-serif !important;
     }
+    
+    /* 你的其他排版樣式保持不變... */
+    body {
+      background-color: #fffaf0;
+      color: #5c4a40;
+      background-image: radial-gradient(#e6d5c3 1.5px, transparent 1.5px);
+      background-size: 24px 24px;
+    }
+    .hand-drawn-box {
+      background: #ffffff;
+      border: 3px solid #5c4a40;
+      border-radius: 16px 24px 16px 24px; 
+      box-shadow: 6px 6px 0px #e6d5c3;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+    /* ...後面接你原本的 CSS ... */
   </style>
 </head>
 <body class="bg-[#f7f3ec]">
