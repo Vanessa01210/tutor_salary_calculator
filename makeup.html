@@ -16,10 +16,10 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.6/babel.min.js"></script>
 
   <style>
-    /* 1. 定義並載入你的專屬字體 */
+    /* 1. 定義並載入專屬字體 (加上 ?v=1 強制破除快取) */
     @font-face {
       font-family: 'SusuCustomFont'; 
-      src: url('susu-font.ttf') format('truetype'); 
+      src: url('susu-font.ttf?v=1') format('truetype'); 
       font-weight: normal;
       font-style: normal;
       font-display: swap;
@@ -108,7 +108,7 @@
         localStorage.setItem('susuMakeupRecords', JSON.stringify(records));
       }, [records]);
 
-      // 計算調課額度 (假設以目前所有的請假紀錄來算，你可以在新的一期按下「清空」重新計算)
+      // 計算調課額度 
       const leaveCounts = {};
       records.forEach(r => {
         const name = r.student.trim();
