@@ -1,486 +1,568 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-  <base target="_top">
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+import React, { useState, useEffect } from 'react';
+import { Plus, Trash2, Copy, CheckCircle2, Calculator, CalendarDays, Upload, X, AlertCircle, FileText, Filter, Instagram } from 'lucide-react';
+
+// 產生絕對唯一 ID
+let uniqueIdCounter = 0;
+const generateId = () => {
+  uniqueIdCounter += 1;
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID() + '-' + uniqueIdCounter;
+  }
+  return `${Date.now()}-${uniqueIdCounter}-${Math.random().toString(36).substring(2, 11)}`;
+};
+
+export default function App() {
+  const [records, setRecords] = useState([
+    { id: generateId(), date: '', subject: '', rate: '', hours: '' }
+  ]);
+  const [total, setTotal] = useState(0);
+  const [copied, setCopied] = useState(false);
   
-  <!-- 改用更穩定的 cdnjs，避免學校/公司網路阻擋 -->
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.6/babel.min.js"></script>
-</head>
-<body class="bg-[#f7f3ec]">
+  const [selectedStudent, setSelectedStudent] = useState('All');
+  const [activeModal, setActiveModal] = useState(null);
   
-  <div id="root">
-     <!-- 預載畫面：如果 React 壞掉或網路被擋，就會停留顯示這個，不會全白 -->
-     <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; color: #8c7361;">
-        <svg style="width: 50px; height: 50px; margin-bottom: 20px; animation: spin 1s linear infinite;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" stroke-opacity="0.25"></circle>
-          <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        <h2 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 10px;">🍞 系統正在為您準備中...</h2>
-        <p style="text-align: center; color: #b5a496;">如果畫面停留超過 5 秒，代表目前的網路阻擋了載入。<br/>請嘗試切換至「手機熱點」或重新整理網頁！</p>
-        <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
-     </div>
-  </div>
+  const [importMonth, setImportMonth] = useState('');
+  const [importRate, setImportRate] = useState('');
+  const [textImportData, setTextImportData] = useState('');
 
-  <script type="text/babel">
-    const { useState, useEffect } = React;
+  const presetRates = [450, 500, 550, 675, 750];
 
-    // --- 內建 SVG 圖示元件 ---
-    const Icon = ({ children, className }) => (
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>{children}</svg>
-    );
-    const Plus = ({className}) => <Icon className={className}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></Icon>;
-    const Trash2 = ({className}) => <Icon className={className}><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></Icon>;
-    const Copy = ({className}) => <Icon className={className}><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></Icon>;
-    const CheckCircle2 = ({className}) => <Icon className={className}><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></Icon>;
-    const Calculator = ({className}) => <Icon className={className}><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="18"></line><path d="M16 10h.01"></path><path d="M12 10h.01"></path><path d="M8 10h.01"></path><path d="M12 14h.01"></path><path d="M8 14h.01"></path><path d="M12 18h.01"></path><path d="M8 18h.01"></path></Icon>;
-    const CalendarDays = ({className}) => <Icon className={className}><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path><path d="M8 18h.01"></path><path d="M12 18h.01"></path><path d="M16 18h.01"></path></Icon>;
-    const UploadIcon = ({className}) => <Icon className={className}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></Icon>;
-    const X = ({className}) => <Icon className={className}><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></Icon>;
-    const AlertCircle = ({className}) => <Icon className={className}><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></Icon>;
-    const FileText = ({className}) => <Icon className={className}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="10" y1="9" x2="8" y2="9"></line></Icon>;
-    const Filter = ({className}) => <Icon className={className}><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></Icon>;
-    const Instagram = ({className}) => <Icon className={className}><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></Icon>;
+  useEffect(() => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    setImportMonth(`${yyyy}-${mm}`);
+  }, []);
 
-    // 產生絕對唯一 ID (移除 crypto 避免 iframe 權限被擋)
-    let uniqueIdCounter = 0;
-    const generateId = () => {
-      uniqueIdCounter += 1;
-      return `id-${Date.now()}-${uniqueIdCounter}-${Math.random().toString(36).substring(2, 9)}`;
+  const uniqueStudents = [...new Set(records.map(r => r.subject.trim()).filter(Boolean))];
+  const filteredRecords = selectedStudent === 'All' 
+    ? records 
+    : records.filter(r => r.subject.trim() === selectedStudent);
+
+  useEffect(() => {
+    let newTotal = 0;
+    filteredRecords.forEach(record => {
+      const rate = parseFloat(record.rate) || 0;
+      const hours = parseFloat(record.hours) || 0;
+      newTotal += Math.round(rate * hours);
+    });
+    setTotal(newTotal);
+  }, [filteredRecords]);
+
+  const addRecord = () => {
+    setRecords([
+      ...records,
+      { id: generateId(), date: '', subject: selectedStudent !== 'All' ? selectedStudent : '', rate: '', hours: '' }
+    ]);
+  };
+
+  const removeRecord = (id) => {
+    if (records.length > 1) {
+      setRecords(records.filter(record => record.id !== id));
+    } else if (records.length === 1) {
+      setRecords([{ id: generateId(), date: '', subject: '', rate: '', hours: '' }]);
+    }
+  };
+
+  const updateRecord = (id, field, value) => {
+    setRecords(records.map(record => 
+      record.id === id ? { ...record, [field]: value } : record
+    ));
+  };
+
+  const handleWheel = (e) => {
+    e.target.blur();
+  };
+
+  // --- 文字匯入邏輯 ---
+  const handleTextImport = () => {
+    if (!textImportData.trim()) { alert("請輸入文字！"); return; }
+
+    const regex = /-\s*(\d{1,2}\/\d{1,2})\s+([^：:]+)[：:]\s*([\d.]+)\s*小時\s*[xX*]\s*([\d.]+)\s*元/g;
+    let match;
+    const newRecords = [];
+
+    while ((match = regex.exec(textImportData)) !== null) {
+      newRecords.push({
+        id: generateId(),
+        date: match[1],
+        subject: match[2].trim(),
+        hours: parseFloat(match[3]),
+        rate: match[4]
+      });
+    }
+
+    if (newRecords.length > 0) {
+      const isFirstRecordEmpty = records.length === 1 && !records[0].date && !records[0].subject && !records[0].rate && !records[0].hours;
+      if (isFirstRecordEmpty) setRecords(newRecords);
+      else setRecords([...records, ...newRecords]);
+      
+      setActiveModal(null);
+      setTextImportData('');
+      setSelectedStudent('All');
+      alert(`成功匯入 ${newRecords.length} 筆課程紀錄！`);
+    } else {
+      alert("找不到符合格式的紀錄！請確保格式為：「- 03/01 名字：1.5 小時 x 500 元」");
+    }
+  };
+
+  // --- 處理檔案上傳 ---
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!importMonth) { alert('請先選擇要結算的月份！'); return; }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const icsData = event.target.result;
+        const newRecords = parseICS(icsData, importMonth, importRate);
+        
+        if (newRecords.length === 0) {
+          alert(`在 ${importMonth} 沒有找到任何行程，請確認選擇的月份是否正確。`);
+          return;
+        }
+
+        const isFirstRecordEmpty = records.length === 1 && !records[0].date && !records[0].subject && !records[0].rate && !records[0].hours;
+        if (isFirstRecordEmpty) setRecords(newRecords);
+        else setRecords([...records, ...newRecords]);
+        
+        setActiveModal(null);
+        alert(`成功匯入 ${newRecords.length} 筆課程紀錄！`);
+      } catch (error) {
+        console.error("解析失敗", error);
+        alert('解析檔案失敗，請確保上傳的是正確的檔案。');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = null; 
+  };
+
+  // -------------------------------------------------------------
+  // 🔥 全新升級！能看懂例外、修改與重複事件的無敵版 ICS 解析器
+  // -------------------------------------------------------------
+  const parseICS = (icsString, targetMonth, defaultRate) => {
+    const lines = icsString.split(/\r?\n/);
+    const events = [];
+    let currentEvent = null;
+
+    // 1. 將每一行的資料整理進物件
+    lines.forEach(line => {
+      if (line.startsWith('BEGIN:VEVENT')) {
+        currentEvent = { exdates: [] };
+      } else if (line.startsWith('END:VEVENT')) {
+        if (currentEvent && currentEvent.start && currentEvent.end && currentEvent.summary) {
+          events.push(currentEvent);
+        }
+        currentEvent = null;
+      } else if (currentEvent) {
+        if (line.startsWith('SUMMARY:')) currentEvent.summary = line.substring(8).trim();
+        else if (line.match(/^DTSTART/)) {
+          const match = line.match(/[:=](\d{8}T\d{6}Z?)/);
+          if (match) currentEvent.start = match[1];
+        } else if (line.match(/^DTEND/)) {
+          const match = line.match(/[:=](\d{8}T\d{6}Z?)/);
+          if (match) currentEvent.end = match[1];
+        } else if (line.startsWith('RRULE:')) {
+          currentEvent.rrule = line.substring(6);
+        } else if (line.startsWith('UID:')) {
+          currentEvent.uid = line.substring(4).trim();
+        } else if (line.match(/^RECURRENCE-ID/)) {
+          const match = line.match(/[:=](\d{8}T\d{6}Z?)/);
+          if (match) currentEvent.recurrenceId = match[1];
+        } else if (line.match(/^EXDATE/)) {
+          // 抓取例外日期 (被刪除的重複行程)
+          const match = line.match(/[:=](\d{8}T\d{6}Z?)/);
+          if (match) currentEvent.exdates.push(match[1].substring(0, 8)); // 只取 YYYYMMDD
+        }
+      }
+    });
+
+    const parsedRecords = [];
+    const [tYear, tMonth] = targetMonth.split('-').map(Number);
+
+    // 日期字串解析為 Date 物件的輔助函式
+    const parseDT = (dt) => {
+      if (!dt || typeof dt !== 'string' || dt.length < 15) return new Date(); // 容錯
+      const y = parseInt(dt.substring(0, 4));
+      const m = parseInt(dt.substring(4, 6)) - 1;
+      const d = parseInt(dt.substring(6, 8));
+      const h = parseInt(dt.substring(9, 11));
+      const min = parseInt(dt.substring(11, 13));
+      
+      // 注意：台灣時區是 UTC+8，為了簡單精準，我們一律當成本地時間解析
+      // 因為 Google 匯出有時會自帶時區 Z 有時沒有，統一處理比較安全
+      const dateObj = new Date(y, m, d, h, min);
+      if (dt.endsWith('Z')) {
+        // 如果是 Z (UTC時間)，我們幫它加上台灣的 8 小時
+        dateObj.setHours(dateObj.getHours() + 8);
+      }
+      return dateObj;
     };
 
-    function App() {
-      const [records, setRecords] = useState([
-        { id: generateId(), date: '', subject: '', rate: '', hours: '' }
-      ]);
-      const [total, setTotal] = useState(0);
-      const [copied, setCopied] = useState(false);
-      
-      const [selectedStudent, setSelectedStudent] = useState('All');
-      const [activeModal, setActiveModal] = useState(null);
-      const [importMonth, setImportMonth] = useState('');
-      const [importRate, setImportRate] = useState('');
-      const [textImportData, setTextImportData] = useState('');
-      const presetRates = [450, 500, 550, 675, 750];
+    // 格式化日期 YYYYMMDD 用於比對
+    const formatDateObjToYYYYMMDD = (dateObj) => {
+      const y = dateObj.getFullYear();
+      const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const d = String(dateObj.getDate()).padStart(2, '0');
+      return `${y}${m}${d}`;
+    };
 
-      useEffect(() => {
-        const today = new Date();
-        const yyyy = today.getFullYear();
-        const mm = String(today.getMonth() + 1).padStart(2, '0');
-        setImportMonth(`${yyyy}-${mm}`);
-      }, []);
+    // 用來儲存這個月實際發生的所有事件 (解決重複問題)
+    // Key = UID + YYYYMMDD (同一天同一個 UID 只能出現一次)
+    const eventMap = new Map();
 
-      // 防崩潰保護：確保就算沒名字也不會當機
-      const uniqueStudents = [...new Set(records.map(r => (r.subject || '').trim()).filter(Boolean))];
-      const filteredRecords = selectedStudent === 'All' 
-        ? records 
-        : records.filter(r => (r.subject || '').trim() === selectedStudent);
+    // 2. 第一階段：把所有事件（包含重複）展開成清單
+    events.forEach(ev => {
+      const baseStart = parseDT(ev.start);
+      const baseEnd = parseDT(ev.end);
+      const hours = (baseEnd.getTime() - baseStart.getTime()) / (1000 * 60 * 60);
+      const cleanSubject = ev.summary;
 
-      useEffect(() => {
-        let newTotal = 0;
-        filteredRecords.forEach(record => {
-          const rate = parseFloat(record.rate) || 0;
-          const hours = parseFloat(record.hours) || 0;
-          newTotal += Math.round(rate * hours);
-        });
-        setTotal(newTotal);
-      }, [filteredRecords]);
-
-      const addRecord = () => {
-        setRecords([...records, { id: generateId(), date: '', subject: selectedStudent !== 'All' ? selectedStudent : '', rate: '', hours: '' }]);
-      };
-
-      const removeRecord = (id) => {
-        if (records.length > 1) {
-          setRecords(records.filter(record => record.id !== id));
-        } else if (records.length === 1) {
-          setRecords([{ id: generateId(), date: '', subject: '', rate: '', hours: '' }]);
+      // 如果這是個例外被修改的事件 (RECURRENCE-ID)，優先層級最高！
+      if (ev.recurrenceId) {
+        const recurStart = parseDT(ev.start); // 使用它實際的新時間
+        if (recurStart.getFullYear() === tYear && recurStart.getMonth() + 1 === tMonth) {
+          const dayKey = `${ev.uid}-${formatDateObjToYYYYMMDD(recurStart)}`;
+          eventMap.set(dayKey, {
+            dateObj: recurStart,
+            subject: cleanSubject,
+            hours: hours > 0 ? Number(hours.toFixed(2)) : 0,
+            isModified: true // 標記這是修改版
+          });
         }
-      };
-
-      const updateRecord = (id, field, value) => {
-        setRecords(records.map(record => record.id === id ? { ...record, [field]: value } : record));
-      };
-
-      const handleWheel = (e) => e.target.blur();
-
-      const handleTextImport = () => {
-        if (!textImportData.trim()) { alert("請輸入文字！"); return; }
-        const regex = /-\s*(\d{1,2}\/\d{1,2})\s+([^：:]+)[：:]\s*([\d.]+)\s*小時\s*[xX*]\s*([\d.]+)\s*元/g;
-        let match;
-        const newRecords = [];
-
-        while ((match = regex.exec(textImportData)) !== null) {
-          newRecords.push({ id: generateId(), date: match[1], subject: match[2].trim(), hours: parseFloat(match[3]), rate: match[4] });
-        }
-
-        if (newRecords.length > 0) {
-          const isFirstRecordEmpty = records.length === 1 && !records[0].date && !records[0].subject && !records[0].rate && !records[0].hours;
-          if (isFirstRecordEmpty) setRecords(newRecords);
-          else setRecords([...records, ...newRecords]);
-          setActiveModal(null);
-          setTextImportData('');
-          setSelectedStudent('All');
-          alert(`成功匯入 ${newRecords.length} 筆課程紀錄！`);
-        } else {
-          alert("找不到符合格式的紀錄！請確保格式為：「- 03/01 名字：1.5 小時 x 500 元」");
-        }
-      };
-
-      const handleFileUpload = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        if (!importMonth) { alert('請先選擇要結算的月份！'); return; }
-
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          try {
-            const icsData = event.target.result;
-            const newRecords = parseICS(icsData, importMonth, importRate);
-            if (newRecords.length === 0) {
-              alert(`在 ${importMonth} 沒有找到任何有效行程。`); return;
-            }
-            const isFirstRecordEmpty = records.length === 1 && !records[0].date && !records[0].subject && !records[0].rate && !records[0].hours;
-            if (isFirstRecordEmpty) setRecords(newRecords);
-            else setRecords([...records, ...newRecords]);
-            setActiveModal(null);
-            alert(`成功匯入 ${newRecords.length} 筆課程紀錄！`);
-          } catch (error) {
-            console.error("解析失敗", error); alert('解析檔案失敗，請檢查檔案內容。');
-          }
-        };
-        reader.readAsText(file);
-        e.target.value = null; 
-      };
-
-      const parseICS = (icsString, targetMonth, defaultRate) => {
-        const lines = icsString.split(/\r?\n/);
-        const events = [];
-        let currentEvent = null;
-
-        lines.forEach(line => {
-          if (line.startsWith('BEGIN:VEVENT')) currentEvent = {};
-          else if (line.startsWith('END:VEVENT')) {
-            if (currentEvent && currentEvent.start && currentEvent.end) events.push(currentEvent);
-            currentEvent = null;
-          } else if (currentEvent) {
-            if (line.startsWith('SUMMARY:')) currentEvent.summary = line.substring(8).trim();
-            else if (line.startsWith('DTSTART')) {
-              const match = line.match(/:(\d{8}T\d{6}Z?)/);
-              if (match) currentEvent.start = match[1];
-            } else if (line.startsWith('DTEND')) {
-              const match = line.match(/:(\d{8}T\d{6}Z?)/);
-              if (match) currentEvent.end = match[1];
-            } else if (line.startsWith('RRULE:')) currentEvent.rrule = line.substring(6);
-          }
-        });
-
-        const parsedRecords = [];
-        const [tYear, tMonth] = targetMonth.split('-').map(Number);
-        const parseDT = (dt) => {
-          const y = parseInt(dt.substring(0, 4)), m = parseInt(dt.substring(4, 6)) - 1, d = parseInt(dt.substring(6, 8));
-          const h = parseInt(dt.substring(9, 11)), min = parseInt(dt.substring(11, 13));
-          return dt.endsWith('Z') ? new Date(Date.UTC(y, m, d, h, min)) : new Date(y, m, d, h, min);
-        };
-
-        events.forEach(ev => {
-          const baseStart = parseDT(ev.start), baseEnd = parseDT(ev.end);
-          const hours = (baseEnd - baseStart) / (1000 * 60 * 60);
-          const cleanSubject = ev.summary || '(無標題課程)';
-
-          if (ev.rrule && ev.rrule.includes('FREQ=WEEKLY')) {
-            let currentStart = new Date(baseStart.getTime());
-            let untilDate = new Date(tYear, tMonth, 0, 23, 59, 59); 
-            const untilMatch = ev.rrule.match(/UNTIL=(\d{8}T\d{6}Z?)/);
-            if (untilMatch) {
-              const parsedUntil = parseDT(untilMatch[1]);
-              if (parsedUntil < untilDate) untilDate = parsedUntil;
-            }
-            let safety = 0;
-            while (currentStart <= untilDate && safety < 200) {
-              safety++;
-              if (currentStart.getFullYear() === tYear && currentStart.getMonth() + 1 === tMonth) {
-                parsedRecords.push({ id: generateId(), date: `${String(tMonth).padStart(2, '0')}/${String(currentStart.getDate()).padStart(2, '0')}`, subject: cleanSubject, hours: hours > 0 ? Number(hours.toFixed(2)) : 0, rate: defaultRate || '' });
-              }
-              if (currentStart.getFullYear() > tYear || (currentStart.getFullYear() === tYear && currentStart.getMonth() + 1 > tMonth)) break;
-              currentStart.setDate(currentStart.getDate() + 7);
-            }
-          } else {
-            if (baseStart.getFullYear() === tYear && baseStart.getMonth() + 1 === tMonth) {
-              parsedRecords.push({ id: generateId(), date: `${String(tMonth).padStart(2, '0')}/${String(baseStart.getDate()).padStart(2, '0')}`, subject: cleanSubject, hours: hours > 0 ? Number(hours.toFixed(2)) : 0, rate: defaultRate || '' });
-            }
-          }
-        });
-        parsedRecords.sort((a, b) => a.date.localeCompare(b.date));
-        return parsedRecords;
-      };
-
-      const generateAndCopyBill = () => {
-        let billText = selectedStudent === 'All' ? "【家教薪資請款明細】\n\n" : `【${selectedStudent} - 家教薪資請款明細】\n\n`;
+      } 
+      // 如果是每週重複的事件
+      else if (ev.rrule && ev.rrule.includes('FREQ=WEEKLY')) {
+        let currentStart = new Date(baseStart.getTime());
         
-        filteredRecords.forEach(record => {
-          const dateStr = record.date ? `${record.date} ` : '';
-          const subjectStr = record.subject ? record.subject : '課程';
-          const rate = parseFloat(record.rate) || 0;
-          const hours = parseFloat(record.hours) || 0;
-          const subtotal = Math.round(rate * hours); 
-          if (rate > 0 && hours > 0) {
-            billText += `- ${dateStr}${subjectStr}：${hours} 小時 x ${rate} 元 = ${subtotal} 元\n`;
-          }
-        });
-        
-        billText += `\n------------------------\n`;
-        billText += `本期總計：${total.toLocaleString()} 元\n`;
-        billText += `再麻煩家長確認，謝謝您！🙏`;
-
-        const textArea = document.createElement("textarea");
-        textArea.value = billText;
-        document.body.appendChild(textArea);
-        textArea.select();
-        try {
-          document.execCommand('copy');
-          setCopied(true);
-          setTimeout(() => setCopied(false), 3000);
-        } catch (err) {
-          console.error('複製失敗', err);
+        let untilDate = new Date(tYear, tMonth, 0, 23, 59, 59); // 預設算到月底
+        const untilMatch = ev.rrule.match(/UNTIL=(\d{8}T\d{6}Z?)/);
+        if (untilMatch) {
+          const parsedUntil = parseDT(untilMatch[1]);
+          if (parsedUntil < untilDate) untilDate = parsedUntil;
         }
-        document.body.removeChild(textArea);
-      };
 
-      return (
-        <div style={{ fontFamily: '"Noto Serif TC", "PMingLiU", "Songti TC", serif' }} className="min-h-screen p-4 md:p-8 text-[#5a4d41] relative pb-24 selection:bg-[#d98c73] selection:text-white">
-          <div className="max-w-5xl mx-auto">
+        let safety = 0;
+        while (currentStart <= untilDate && safety < 200) {
+          safety++;
+          
+          const evYear = currentStart.getFullYear();
+          const evMonth = currentStart.getMonth() + 1;
+          const yyyymmdd = formatDateObjToYYYYMMDD(currentStart);
+
+          // 檢查是否落在目標月份，並且「不在」例外取消名單中
+          if (evYear === tYear && evMonth === tMonth && !ev.exdates.includes(yyyymmdd)) {
+            const dayKey = `${ev.uid}-${yyyymmdd}`;
             
-            {/* 標題區塊 */}
-            <div className="bg-[#fcfbf9] rounded-t-2xl shadow-sm border-b-4 border-[#d98c73] p-6 flex flex-col md:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <Calculator className="w-8 h-8 text-[#d98c73]" />
-                <h1 className="text-2xl md:text-3xl font-bold text-[#4a3f35] tracking-widest">薪資結算小幫手</h1>
-              </div>
+            // 🔥 重點防禦：如果這一天這個事件已經有「修改版(RECURRENCE-ID)」被寫入，就不覆蓋！
+            if (!eventMap.has(dayKey) || !eventMap.get(dayKey).isModified) {
+              eventMap.set(dayKey, {
+                dateObj: new Date(currentStart.getTime()), // 存下當下的時間
+                subject: cleanSubject,
+                hours: hours > 0 ? Number(hours.toFixed(2)) : 0,
+                isModified: false
+              });
+            }
+          }
+          
+          // 如果超過目標月份就提早結束
+          if (evYear > tYear || (evYear === tYear && evMonth > tMonth)) break;
+          
+          currentStart.setDate(currentStart.getDate() + 7);
+        }
+      } 
+      // 一般的單次事件
+      else {
+        const evYear = baseStart.getFullYear();
+        const evMonth = baseStart.getMonth() + 1;
+        if (evYear === tYear && evMonth === tMonth) {
+           const yyyymmdd = formatDateObjToYYYYMMDD(baseStart);
+           const dayKey = `${ev.uid}-${yyyymmdd}`;
+           
+           // 同樣如果有修改版，不覆蓋
+           if (!eventMap.has(dayKey) || !eventMap.get(dayKey).isModified) {
+              eventMap.set(dayKey, {
+                dateObj: baseStart,
+                subject: cleanSubject,
+                hours: hours > 0 ? Number(hours.toFixed(2)) : 0,
+                isModified: false
+              });
+           }
+        }
+      }
+    });
+
+    // 3. 把 Map 裡面的唯一事件轉回紀錄陣列
+    eventMap.forEach((evData) => {
+       const m = String(evData.dateObj.getMonth() + 1).padStart(2, '0');
+       const d = String(evData.dateObj.getDate()).padStart(2, '0');
+       parsedRecords.push({
+          id: generateId(),
+          date: `${m}/${d}`,
+          subject: evData.subject,
+          hours: evData.hours,
+          rate: defaultRate || ''
+       });
+    });
+
+    // 依照日期排序
+    parsedRecords.sort((a, b) => a.date.localeCompare(b.date));
+    return parsedRecords;
+  };
+
+  const generateAndCopyBill = () => {
+    let billText = selectedStudent === 'All' ? "【家教薪資請款明細】\n\n" : `【${selectedStudent} - 家教薪資請款明細】\n\n`;
+    
+    filteredRecords.forEach(record => {
+      const dateStr = record.date ? `${record.date} ` : '';
+      const subjectStr = record.subject ? record.subject : '課程';
+      const rate = parseFloat(record.rate) || 0;
+      const hours = parseFloat(record.hours) || 0;
+      const subtotal = Math.round(rate * hours); 
+      
+      if (rate > 0 && hours > 0) {
+        billText += `- ${dateStr}${subjectStr}：${hours} 小時 x ${rate} 元 = ${subtotal} 元\n`;
+      }
+    });
+    
+    billText += `\n------------------------\n`;
+    billText += `本期總計：${total.toLocaleString()} 元\n`;
+    billText += `再麻煩家長確認，謝謝您！🙏`;
+
+    const textArea = document.createElement("textarea");
+    textArea.value = billText;
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      setCopied(true);
+      setTimeout(() => setCopied(false), 3000);
+    } catch (err) {
+      console.error('複製失敗', err);
+    }
+    document.body.removeChild(textArea);
+  };
+
+  return (
+    <div style={{ fontFamily: '"Noto Serif TC", "PMingLiU", "Songti TC", serif' }} className="min-h-screen bg-[#f7f3ec] p-4 md:p-8 text-[#5a4d41] relative pb-24 selection:bg-[#d98c73] selection:text-white">
+      <div className="max-w-5xl mx-auto">
+        
+        {/* 標題區塊 */}
+        <div className="bg-[#fcfbf9] rounded-t-2xl shadow-sm border-b-4 border-[#d98c73] p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <Calculator className="w-8 h-8 text-[#d98c73]" />
+            <h1 className="text-2xl md:text-3xl font-bold text-[#4a3f35] tracking-widest">薪資結算小幫手</h1>
+          </div>
+          
+          {/* 匯入按鈕群組 */}
+          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+            <button 
+              onClick={() => setActiveModal('text')}
+              className="flex items-center justify-center gap-2 bg-[#f0f3eb] hover:bg-[#e2e8db] text-[#6b7d5d] px-5 py-2.5 rounded-xl font-bold transition-colors text-sm border border-[#c4cfbc]"
+            >
+              <FileText className="w-4 h-4" /> 貼上整份文字明細
+            </button>
+            <button 
+              onClick={() => setActiveModal('calendar')}
+              className="flex items-center justify-center gap-2 bg-[#f3ede8] hover:bg-[#e8dcd2] text-[#8c7361] px-5 py-2.5 rounded-xl font-bold transition-colors text-sm border border-[#d6c9be]"
+            >
+              <CalendarDays className="w-4 h-4" /> 從 Google 日曆匯入
+            </button>
+          </div>
+        </div>
+
+        {/* 主要內容區塊 */}
+        <div className="bg-[#fcfbf9] shadow-[0_8px_30px_-4px_rgba(180,170,150,0.2)] rounded-b-2xl p-4 md:p-6 border border-[#ece8e0] mb-12">
+          
+          {/* 學生過濾器 */}
+          {uniqueStudents.length > 0 && (
+            <div className="mb-6 p-4 bg-[#f9f5f0] border border-[#e8dcd2] rounded-xl flex flex-wrap gap-2 items-center">
+              <Filter className="w-4 h-4 text-[#d98c73] mr-1" />
+              <span className="text-sm font-bold text-[#7a6859] mr-2 tracking-wide">智慧分類請款：</span>
               
-              <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+              <button 
+                onClick={() => setSelectedStudent('All')}
+                className={`px-4 py-1.5 rounded-full text-sm font-bold transition-all tracking-wider ${
+                  selectedStudent === 'All' 
+                    ? 'bg-[#d98c73] text-white shadow-sm' 
+                    : 'bg-white text-[#8c7361] border border-[#d6c9be] hover:bg-[#f3ede8]'
+                }`}
+              >全部顯示</button>
+              
+              {uniqueStudents.map(student => (
                 <button 
-                  onClick={() => setActiveModal('text')}
-                  className="flex items-center justify-center gap-2 bg-[#f0f3eb] hover:bg-[#e2e8db] text-[#6b7d5d] px-5 py-2.5 rounded-xl font-bold transition-colors text-sm border border-[#c4cfbc]"
-                >
-                  <FileText className="w-4 h-4" /> 貼上整份文字明細
-                </button>
-                <button 
-                  onClick={() => setActiveModal('calendar')}
-                  className="flex items-center justify-center gap-2 bg-[#f3ede8] hover:bg-[#e8dcd2] text-[#8c7361] px-5 py-2.5 rounded-xl font-bold transition-colors text-sm border border-[#d6c9be]"
-                >
-                  <CalendarDays className="w-4 h-4" /> 從 Google 日曆匯入
-                </button>
-              </div>
+                  key={student}
+                  onClick={() => setSelectedStudent(student)}
+                  className={`px-4 py-1.5 rounded-full text-sm font-bold transition-all tracking-wider ${
+                    selectedStudent === student 
+                      ? 'bg-[#d98c73] text-white shadow-sm' 
+                      : 'bg-white text-[#8c7361] border border-[#d6c9be] hover:bg-[#f3ede8]'
+                  }`}
+                >{student}</button>
+              ))}
             </div>
+          )}
 
-            {/* 主要內容區塊 */}
-            <div className="bg-[#fcfbf9] shadow-[0_8px_30px_-4px_rgba(180,170,150,0.2)] rounded-b-2xl p-4 md:p-6 border border-[#ece8e0] mb-12">
+          <div className="hidden lg:flex gap-4 mb-4 px-4 text-[#8c7361] font-bold text-sm tracking-wider">
+            <div className="w-2/12">日期</div>
+            <div className="w-2/12">學生 / 科目</div>
+            <div className="w-5/12">時薪快速選取</div>
+            <div className="w-1/12">時數</div>
+            <div className="w-2/12 text-right pr-12">小計</div>
+          </div>
+
+          <div className="space-y-4 lg:space-y-3">
+            {filteredRecords.map((record) => {
+              const subtotal = Math.round((parseFloat(record.rate) || 0) * (parseFloat(record.hours) || 0));
+              const isCustomRate = record.rate !== '' && !presetRates.includes(Number(record.rate));
               
-              {uniqueStudents.length > 0 && (
-                <div className="mb-6 p-4 bg-[#f9f5f0] border border-[#e8dcd2] rounded-xl flex flex-wrap gap-2 items-center">
-                  <Filter className="w-4 h-4 text-[#d98c73] mr-1" />
-                  <span className="text-sm font-bold text-[#7a6859] mr-2 tracking-wide">智慧分類請款：</span>
-                  <button 
-                    onClick={() => setSelectedStudent('All')}
-                    className={`px-4 py-1.5 rounded-full text-sm font-bold transition-all tracking-wider ${
-                      selectedStudent === 'All' ? 'bg-[#d98c73] text-white shadow-sm' : 'bg-white text-[#8c7361] border border-[#d6c9be] hover:bg-[#f3ede8]'
-                    }`}
-                  >全部顯示</button>
-                  {uniqueStudents.map(student => (
-                    <button 
-                      key={student}
-                      onClick={() => setSelectedStudent(student)}
-                      className={`px-4 py-1.5 rounded-full text-sm font-bold transition-all tracking-wider ${
-                        selectedStudent === student ? 'bg-[#d98c73] text-white shadow-sm' : 'bg-white text-[#8c7361] border border-[#d6c9be] hover:bg-[#f3ede8]'
-                      }`}
-                    >{student}</button>
-                  ))}
-                </div>
-              )}
-
-              <div className="hidden lg:flex gap-4 mb-4 px-4 text-[#8c7361] font-bold text-sm tracking-wider">
-                <div className="w-2/12">日期</div>
-                <div className="w-2/12">學生 / 科目</div>
-                <div className="w-5/12">時薪快速選取</div>
-                <div className="w-1/12">時數</div>
-                <div className="w-2/12 text-right pr-12">小計</div>
-              </div>
-
-              <div className="space-y-4 lg:space-y-3">
-                {filteredRecords.map((record) => {
-                  const subtotal = Math.round((parseFloat(record.rate) || 0) * (parseFloat(record.hours) || 0));
-                  const isCustomRate = record.rate !== '' && !presetRates.includes(Number(record.rate));
-                  
-                  return (
-                    <div key={record.id} className="flex flex-col lg:flex-row gap-3 lg:gap-4 items-start lg:items-center bg-[#ffffff] lg:bg-transparent p-4 lg:p-2 rounded-xl lg:rounded-lg border lg:border-none border-[#ece8e0] hover:bg-[#f9f7f4] transition-colors">
-                      <div className="w-full lg:w-2/12">
-                        <label className="text-xs font-bold text-[#b5a496] mb-1 lg:hidden block">日期</label>
-                        <input type="text" placeholder="例: 03/01" value={record.date} onChange={(e) => updateRecord(record.id, 'date', e.target.value)} className="w-full px-3 py-2 border border-[#e3dacd] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d98c73] bg-[#faf8f5]" />
-                      </div>
-                      <div className="w-full lg:w-2/12">
-                        <label className="text-xs font-bold text-[#b5a496] mb-1 lg:hidden block">學生 / 科目</label>
-                        <input type="text" placeholder="例: 毓瑄" value={record.subject} onChange={(e) => updateRecord(record.id, 'subject', e.target.value)} className="w-full px-3 py-2 border border-[#e3dacd] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d98c73] bg-[#faf8f5]" />
-                      </div>
-                      <div className="w-full lg:w-5/12">
-                        <label className="text-xs font-bold text-[#b5a496] mb-2 lg:hidden block">時薪設定</label>
-                        <div className="flex flex-wrap gap-2 items-center">
-                          {presetRates.map(pr => (
-                            <button
-                              key={pr}
-                              onClick={() => updateRecord(record.id, 'rate', pr)}
-                              className={`px-3 py-1.5 rounded-lg text-sm font-bold border transition-all tracking-wider ${
-                                Number(record.rate) === pr ? 'bg-[#d98c73] border-[#d98c73] text-white shadow-sm transform scale-105' : 'bg-white border-[#e3dacd] text-[#8c7361] hover:bg-[#f3ede8]'
-                              }`}
-                            >${pr}</button>
-                          ))}
-                          <div className="relative">
-                            <span className="absolute left-2 top-1.5 text-[#b5a496] text-sm">$</span>
-                            <input 
-                              type="number" min="0" placeholder="其他" value={isCustomRate ? record.rate : ''} 
-                              onChange={(e) => updateRecord(record.id, 'rate', e.target.value)} onWheel={handleWheel}
-                              className={`w-20 pl-5 pr-2 py-1.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d98c73] ${
-                                isCustomRate ? 'border-[#d98c73] bg-[#fff5f2] text-[#c47359] font-bold' : 'border-[#e3dacd] bg-[#faf8f5]'
-                              }`}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="w-full lg:w-1/12 mt-2 lg:mt-0">
-                        <label className="text-xs font-bold text-[#b5a496] mb-1 lg:hidden block">上課時數</label>
-                        <input type="number" min="0" step="0.5" placeholder="時數" value={record.hours} onChange={(e) => updateRecord(record.id, 'hours', e.target.value)} onWheel={handleWheel} className="w-full px-3 py-2 border border-[#e3dacd] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d98c73] bg-[#faf8f5] font-bold text-center lg:text-left text-lg" />
-                      </div>
-                      <div className="w-full lg:w-2/12 flex justify-between items-center mt-3 lg:mt-0 pt-3 lg:pt-0 border-t lg:border-none border-[#ece8e0]">
-                        <div className="text-[#5a4d41] font-bold lg:text-right lg:w-full lg:pr-4 text-xl lg:text-lg">
-                          <span className="lg:hidden text-sm text-[#b5a496] mr-2 font-normal">小計:</span>${subtotal.toLocaleString()}
-                        </div>
-                        <button onClick={() => removeRecord(record.id)} className="p-2 rounded-lg text-[#d98c73] hover:bg-[#fff5f2] hover:text-[#c47359] transition-colors bg-white lg:bg-transparent border border-[#ece8e0] lg:border-none">
-                          <Trash2 className="w-5 h-5" />
-                        </button>
+              return (
+                <div key={record.id} className="flex flex-col lg:flex-row gap-3 lg:gap-4 items-start lg:items-center bg-[#ffffff] lg:bg-transparent p-4 lg:p-2 rounded-xl lg:rounded-lg border lg:border-none border-[#ece8e0] hover:bg-[#f9f7f4] transition-colors">
+                  <div className="w-full lg:w-2/12">
+                    <label className="text-xs font-bold text-[#b5a496] mb-1 lg:hidden block">日期</label>
+                    <input type="text" placeholder="例: 03/01" value={record.date} onChange={(e) => updateRecord(record.id, 'date', e.target.value)} className="w-full px-3 py-2 border border-[#e3dacd] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d98c73] bg-[#faf8f5]" />
+                  </div>
+                  <div className="w-full lg:w-2/12">
+                    <label className="text-xs font-bold text-[#b5a496] mb-1 lg:hidden block">學生 / 科目</label>
+                    <input type="text" placeholder="例: 毓瑄" value={record.subject} onChange={(e) => updateRecord(record.id, 'subject', e.target.value)} className="w-full px-3 py-2 border border-[#e3dacd] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d98c73] bg-[#faf8f5]" />
+                  </div>
+                  <div className="w-full lg:w-5/12">
+                    <label className="text-xs font-bold text-[#b5a496] mb-2 lg:hidden block">時薪設定</label>
+                    <div className="flex flex-wrap gap-2 items-center">
+                      {presetRates.map(pr => (
+                        <button
+                          key={pr}
+                          onClick={() => updateRecord(record.id, 'rate', pr)}
+                          className={`px-3 py-1.5 rounded-lg text-sm font-bold border transition-all tracking-wider ${
+                            Number(record.rate) === pr ? 'bg-[#d98c73] border-[#d98c73] text-white shadow-sm transform scale-105' : 'bg-white border-[#e3dacd] text-[#8c7361] hover:bg-[#f3ede8]'
+                          }`}
+                        >${pr}</button>
+                      ))}
+                      <div className="relative">
+                        <span className="absolute left-2 top-1.5 text-[#b5a496] text-sm">$</span>
+                        <input 
+                          type="number" min="0" placeholder="其他" value={isCustomRate ? record.rate : ''} 
+                          onChange={(e) => updateRecord(record.id, 'rate', e.target.value)} onWheel={handleWheel}
+                          className={`w-20 pl-5 pr-2 py-1.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d98c73] ${
+                            isCustomRate ? 'border-[#d98c73] bg-[#fff5f2] text-[#c47359] font-bold' : 'border-[#e3dacd] bg-[#faf8f5]'
+                          }`}
+                        />
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-
-              <button onClick={addRecord} className="mt-8 flex items-center gap-2 text-[#8c7361] hover:text-[#d98c73] hover:bg-[#fffcfb] hover:border-[#d98c73] px-4 py-3 rounded-xl transition-all font-bold text-sm border-2 border-[#e8dcd2] border-dashed w-full justify-center tracking-widest">
-                <Plus className="w-5 h-5" /> {selectedStudent === 'All' ? '手動新增一筆紀錄' : `新增一筆【${selectedStudent}】的紀錄`}
-              </button>
-
-              <hr className="my-8 border-[#e8dcd2]" />
-
-              <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-                <div className="w-full md:w-auto text-center md:text-left bg-[#fcfbf9] p-5 rounded-2xl border border-[#ece8e0] shadow-sm">
-                  <span className="text-[#8c7361] font-bold mr-4 tracking-wider">{selectedStudent === 'All' ? '全名單總計金額' : `【${selectedStudent}】 總計金額`}</span>
-                  <span className="text-4xl font-black text-[#d98c73] font-sans">${total.toLocaleString()}</span>
+                  </div>
+                  <div className="w-full lg:w-1/12 mt-2 lg:mt-0">
+                    <label className="text-xs font-bold text-[#b5a496] mb-1 lg:hidden block">上課時數</label>
+                    <input type="number" min="0" step="0.5" placeholder="時數" value={record.hours} onChange={(e) => updateRecord(record.id, 'hours', e.target.value)} onWheel={handleWheel} className="w-full px-3 py-2 border border-[#e3dacd] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d98c73] bg-[#faf8f5] font-bold text-center lg:text-left text-lg" />
+                  </div>
+                  <div className="w-full lg:w-2/12 flex justify-between items-center mt-3 lg:mt-0 pt-3 lg:pt-0 border-t lg:border-none border-[#ece8e0]">
+                    <div className="text-[#5a4d41] font-bold lg:text-right lg:w-full lg:pr-4 text-xl lg:text-lg">
+                      <span className="lg:hidden text-sm text-[#b5a496] mr-2 font-normal">小計:</span>${subtotal.toLocaleString()}
+                    </div>
+                    <button onClick={() => removeRecord(record.id)} className="p-2 rounded-lg text-[#d98c73] hover:bg-[#fff5f2] hover:text-[#c47359] transition-colors bg-white lg:bg-transparent border border-[#ece8e0] lg:border-none">
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
-                <button onClick={generateAndCopyBill} className={`w-full md:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-bold text-white transition-all transform active:scale-95 shadow-[0_4px_15px_-3px_rgba(217,140,115,0.4)] tracking-widest text-lg ${copied ? 'bg-[#8ba082] hover:bg-[#7a8c71]' : 'bg-[#d98c73] hover:bg-[#c47a60]'}`}>
-                  {copied ? <><CheckCircle2 className="w-6 h-6" /> 已複製到剪貼簿！</> : <><Copy className="w-6 h-6" /> 產生並複製{selectedStudent === 'All' ? '全部' : ` ${selectedStudent} `}請款單</>}
-                </button>
-              </div>
+              );
+            })}
+          </div>
+
+          <button onClick={addRecord} className="mt-8 flex items-center gap-2 text-[#8c7361] hover:text-[#d98c73] hover:bg-[#fffcfb] hover:border-[#d98c73] px-4 py-3 rounded-xl transition-all font-bold text-sm border-2 border-[#e8dcd2] border-dashed w-full justify-center tracking-widest">
+            <Plus className="w-5 h-5" /> {selectedStudent === 'All' ? '手動新增一筆紀錄' : `新增一筆【${selectedStudent}】的紀錄`}
+          </button>
+
+          <hr className="my-8 border-[#e8dcd2]" />
+
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="w-full md:w-auto text-center md:text-left bg-[#fcfbf9] p-5 rounded-2xl border border-[#ece8e0] shadow-sm">
+              <span className="text-[#8c7361] font-bold mr-4 tracking-wider">{selectedStudent === 'All' ? '全名單總計金額' : `【${selectedStudent}】 總計金額`}</span>
+              <span className="text-4xl font-black text-[#d98c73] font-sans">${total.toLocaleString()}</span>
             </div>
-            
-            {/* 專屬版權 Footer */}
-            <div className="mt-8 flex flex-col items-center justify-center text-[#8c7361] space-y-3 pb-8">
-              <div className="relative group cursor-pointer">
-                <div className="absolute inset-0 bg-[#d98c73] rounded-full blur opacity-20 group-hover:opacity-40 transition-opacity duration-300"></div>
-                <img 
-                  src="https://i.ibb.co/pB0FK9h1/Chat-GPT-Image-2026-7-13-09-32-14.png" 
-                  alt="酥酥老師 Logo" 
-                  className="relative w-24 h-24 object-cover rounded-full shadow-sm border-2 border-[#ece8e0]" 
-                  onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
-                />
-                <div className="hidden w-24 h-24 bg-[#fffcfb] border-2 border-[#ece8e0] rounded-full items-center justify-center text-[#d98c73] font-bold text-xl">酥</div>
+            <button onClick={generateAndCopyBill} className={`w-full md:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-bold text-white transition-all transform active:scale-95 shadow-[0_4px_15px_-3px_rgba(217,140,115,0.4)] tracking-widest text-lg ${copied ? 'bg-[#8ba082] hover:bg-[#7a8c71]' : 'bg-[#d98c73] hover:bg-[#c47a60]'}`}>
+              {copied ? <><CheckCircle2 className="w-6 h-6" /> 已複製到剪貼簿！</> : <><Copy className="w-6 h-6" /> 產生並複製{selectedStudent === 'All' ? '全部' : ` ${selectedStudent} `}請款單</>}
+            </button>
+          </div>
+        </div>
+        
+        {/* Footer */}
+        <div className="mt-8 flex flex-col items-center justify-center text-[#8c7361] space-y-3 pb-8">
+          <div className="relative group cursor-pointer">
+            <div className="absolute inset-0 bg-[#d98c73] rounded-full blur opacity-20 group-hover:opacity-40 transition-opacity duration-300"></div>
+            <img 
+              src="https://imgur.com/your-image-id.jpg" 
+              alt="酥酥老師 Logo" 
+              className="relative w-24 h-24 object-cover rounded-full shadow-sm border-2 border-[#ece8e0]" 
+              onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+            />
+            <div className="hidden w-24 h-24 bg-[#fffcfb] border-2 border-[#ece8e0] rounded-full items-center justify-center text-[#d98c73] font-bold text-xl">酥</div>
+          </div>
+          
+          <div className="text-center space-y-1">
+            <p className="font-bold tracking-widest text-[15px]">設計者：酥酥老師</p>
+            <a href="https://instagram.com/crispyyyyy0121" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-1.5 text-sm hover:text-[#d98c73] transition-colors">
+              <Instagram className="w-4 h-4" /> @crispyyyyy0121
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Modal 1: 文字匯入 */}
+      {activeModal === 'text' && (
+        <div className="fixed inset-0 bg-[#4a3f35]/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="bg-[#fcfbf9] rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200 border border-[#ece8e0]">
+            <div className="bg-[#8ba082] p-4 flex justify-between items-center text-white">
+              <h2 className="font-bold text-lg flex items-center gap-2 tracking-widest"><FileText className="w-5 h-5"/> 貼上文字明細</h2>
+              <button onClick={() => setActiveModal(null)} className="hover:bg-[#7a8c71] p-1 rounded-md"><X className="w-5 h-5" /></button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="bg-[#f0f3eb] border border-[#c4cfbc] text-[#6b7d5d] text-sm p-4 rounded-xl flex gap-3 items-start shadow-sm">
+                <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-[#8ba082]"/>
+                <div>
+                  <p className="font-bold mb-1 tracking-wide">請直接貼上你的文字紀錄</p>
+                  <p className="text-xs leading-relaxed text-[#7a8c71]">系統會自動擷取所有符合格式的行。例如：<br/><code className="bg-white px-2 py-1 rounded text-[#5c6e4e] inline-block mt-1 border border-[#e2e8db] font-sans font-bold">- 03/01 毓瑄：2 小時 x 550 元 = 1100 元</code></p>
+                </div>
               </div>
-              
-              <div className="text-center space-y-1">
-                <p className="font-bold tracking-widest text-[15px]">設計者：酥酥老師</p>
-                <a href="https://instagram.com/crispyyyyy0121" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-1.5 text-sm hover:text-[#d98c73] transition-colors">
-                  <Instagram className="w-4 h-4" /> @crispyyyyy0121
-                </a>
+              <textarea rows="8" value={textImportData} onChange={(e) => setTextImportData(e.target.value)} className="w-full p-4 border border-[#e3dacd] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#8ba082] bg-[#faf8f5] font-sans text-sm resize-none"></textarea>
+              <button onClick={handleTextImport} className="w-full bg-[#8ba082] hover:bg-[#7a8c71] text-white font-bold py-3.5 rounded-xl transition-colors shadow-md tracking-widest text-lg">開始解析與匯入</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal 2: 行事曆匯入 */}
+      {activeModal === 'calendar' && (
+        <div className="fixed inset-0 bg-[#4a3f35]/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="bg-[#fcfbf9] rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200 border border-[#ece8e0]">
+            <div className="bg-[#d98c73] p-4 flex justify-between items-center text-white">
+              <h2 className="font-bold text-lg flex items-center gap-2 tracking-widest"><Upload className="w-5 h-5"/> 匯入 Google 行事曆</h2>
+              <button onClick={() => setActiveModal(null)} className="hover:bg-[#c47a60] p-1 rounded-md"><X className="w-5 h-5" /></button>
+            </div>
+            <div className="p-6 space-y-6">
+              <div>
+                <label className="block text-sm font-bold text-[#7a6859] mb-2 tracking-wide">1. 選擇要結算的月份</label>
+                <input type="month" value={importMonth} onChange={(e) => setImportMonth(e.target.value)} className="w-full px-4 py-3 border border-[#e3dacd] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#d98c73] bg-[#faf8f5] font-sans" />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-[#7a6859] mb-2 tracking-wide">2. 預設時薪 (可選填)</label>
+                <input type="number" placeholder="匯入時自動帶入此時薪" value={importRate} onChange={(e) => setImportRate(e.target.value)} onWheel={handleWheel} className="w-full px-4 py-3 border border-[#e3dacd] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#d98c73] bg-[#faf8f5] font-sans" />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-[#7a6859] mb-2 tracking-wide">3. 上傳 .ics 檔案</label>
+                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-[#e3dacd] border-dashed rounded-xl cursor-pointer bg-[#faf8f5] hover:bg-[#fffcfb] hover:border-[#d98c73] transition-all group">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <Upload className="w-8 h-8 text-[#d6c9be] mb-3 group-hover:text-[#d98c73] transition-colors" />
+                    <p className="text-sm text-[#8c7361] font-bold tracking-widest group-hover:text-[#d98c73]">點擊選擇 .ics 檔案</p>
+                  </div>
+                  <input type="file" accept=".ics" className="hidden" onChange={handleFileUpload} />
+                </label>
               </div>
             </div>
           </div>
-
-          {/* Modal 1: 文字匯入 */}
-          {activeModal === 'text' && (
-            <div className="fixed inset-0 bg-[#4a3f35]/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-              <div className="bg-[#fcfbf9] rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200 border border-[#ece8e0]">
-                <div className="bg-[#8ba082] p-4 flex justify-between items-center text-white">
-                  <h2 className="font-bold text-lg flex items-center gap-2 tracking-widest"><FileText className="w-5 h-5"/> 貼上文字明細</h2>
-                  <button onClick={() => setActiveModal(null)} className="hover:bg-[#7a8c71] p-1 rounded-md"><X className="w-5 h-5" /></button>
-                </div>
-                <div className="p-6 space-y-4">
-                  <textarea rows="8" value={textImportData} onChange={(e) => setTextImportData(e.target.value)} className="w-full p-4 border border-[#e3dacd] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#8ba082] bg-[#faf8f5] font-sans text-sm resize-none"></textarea>
-                  <button onClick={handleTextImport} className="w-full bg-[#8ba082] hover:bg-[#7a8c71] text-white font-bold py-3.5 rounded-xl transition-colors shadow-md tracking-widest text-lg">開始解析與匯入</button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Modal 2: 行事曆匯入 */}
-          {activeModal === 'calendar' && (
-            <div className="fixed inset-0 bg-[#4a3f35]/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-              <div className="bg-[#fcfbf9] rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200 border border-[#ece8e0]">
-                <div className="bg-[#d98c73] p-4 flex justify-between items-center text-white">
-                  <h2 className="font-bold text-lg flex items-center gap-2 tracking-widest"><UploadIcon className="w-5 h-5"/> 匯入 Google 行事曆</h2>
-                  <button onClick={() => setActiveModal(null)} className="hover:bg-[#c47a60] p-1 rounded-md"><X className="w-5 h-5" /></button>
-                </div>
-                <div className="p-6 space-y-6">
-                  <div>
-                    <label className="block text-sm font-bold text-[#7a6859] mb-2 tracking-wide">1. 選擇月份</label>
-                    <input type="month" value={importMonth} onChange={(e) => setImportMonth(e.target.value)} className="w-full px-4 py-3 border border-[#e3dacd] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#d98c73] bg-[#faf8f5] font-sans" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-[#7a6859] mb-2 tracking-wide">2. 上傳 .ics 檔案</label>
-                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-[#e3dacd] border-dashed rounded-xl cursor-pointer bg-[#faf8f5] hover:bg-[#fffcfb] hover:border-[#d98c73] transition-all group">
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <UploadIcon className="w-8 h-8 text-[#d6c9be] mb-3 group-hover:text-[#d98c73] transition-colors" />
-                        <p className="text-sm text-[#8c7361] font-bold tracking-widest group-hover:text-[#d98c73]">點擊選擇 .ics 檔案</p>
-                      </div>
-                      <input type="file" accept=".ics" className="hidden" onChange={handleFileUpload} />
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
-      );
-    }
-
-    // --- 錯誤偵測邊界 (防護網) ---
-    class ErrorBoundary extends React.Component {
-      constructor(props) {
-        super(props);
-        this.state = { hasError: false, errorMsg: '' };
-      }
-      static getDerivedStateFromError(error) {
-        return { hasError: true, errorMsg: error.toString() };
-      }
-      render() {
-        if (this.state.hasError) {
-          return (
-            <div style={{ padding: '40px', textAlign: 'center', color: '#c47359', fontFamily: 'sans-serif' }}>
-              <h2>糟糕！系統發生了一點小錯誤 😿</h2>
-              <p>請將下方的錯誤文字截圖紀錄下來：</p>
-              <div style={{ background: '#fffcfb', padding: '20px', borderRadius: '10px', border: '1px solid #ece8e0', marginTop: '20px', textAlign: 'left', wordWrap: 'break-word' }}>
-                <code>{this.state.errorMsg}</code>
-              </div>
-            </div>
-          );
-        }
-        return this.props.children;
-      }
-    }
-
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<ErrorBoundary><App /></ErrorBoundary>);
-  </script>
-</body>
-</html>
+      )}
+    </div>
+  );
+}
