@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>酥酥老師調課追蹤板</title>
   
-  <!-- 引入繁體中文圓體 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;900&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
@@ -16,12 +15,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.6/babel.min.js"></script>
 
   <style>
-    /* 強制全面套用繁體中文圓體，解決「酥」字缺字變宋體的問題 */
     body, * {
       font-family: 'M PLUS Rounded 1c', 'Noto Sans TC', sans-serif !important;
     }
-
-    /* 專屬日系手繪風 CSS */
     body {
       background-color: #fffaf0; 
       color: #5c4a40; 
@@ -79,16 +75,24 @@
     const Trash = ({className}) => <Icon className={className}><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></Icon>;
     const Clock = ({className}) => <Icon className={className}><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></Icon>;
     const Alert = ({className}) => <Icon className={className}><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></Icon>;
+    const Download = ({className}) => <Icon className={className}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></Icon>;
+    const UploadIcon = ({className}) => <Icon className={className}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></Icon>;
 
     const generateId = () => `id-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
     function App() {
       const [records, setRecords] = useState(() => {
         const saved = localStorage.getItem('susuMakeupRecords');
-        if (saved) return JSON.parse(saved);
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            if(parsed.length > 0) return parsed;
+          } catch(e) {}
+        }
         return [{ id: generateId(), student: '小明', subject: '三年級數學', date: '2026-05-15', hours: 1.5, notice24h: true, status: '待補課', makeupDate: '' }];
       });
 
+      // 當 records 改變時，自動存入瀏覽器
       useEffect(() => {
         localStorage.setItem('susuMakeupRecords', JSON.stringify(records));
       }, [records]);
@@ -103,14 +107,7 @@
 
       const addRecord = () => {
         setRecords([{ 
-          id: generateId(), 
-          student: '', 
-          subject: '',
-          date: '', 
-          hours: '', 
-          notice24h: true, 
-          status: '待補課', 
-          makeupDate: '' 
+          id: generateId(), student: '', subject: '', date: '', hours: '', notice24h: true, status: '待補課', makeupDate: '' 
         }, ...records]);
       };
 
@@ -128,6 +125,39 @@
         if(window.confirm('準備開始新的一期了嗎？這將會清空所有調課紀錄與額度喔！')) {
           setRecords([]);
         }
+      };
+
+      // 匯出功能
+      const handleExport = () => {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(records));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "susu_makeup_records.json");
+        document.body.appendChild(downloadAnchorNode); 
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+      };
+
+      // 匯入功能
+      const handleImport = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const imported = JSON.parse(event.target.result);
+            if (Array.isArray(imported)) {
+              setRecords(imported);
+              alert('資料成功匯入囉！✨');
+            } else {
+              alert('檔案格式怪怪的，請確認是之前備份的檔案喔！');
+            }
+          } catch (error) {
+            alert('讀取失敗，檔案可能損毀了。');
+          }
+        };
+        reader.readAsText(file);
+        e.target.value = null; // 清除 input 讓下次可以選同一個檔案
       };
 
       return (
@@ -188,11 +218,23 @@
             </section>
           )}
 
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
             <h2 className="text-xl font-bold flex items-center gap-2"><span className="text-[#d4baa0]">✏️</span> 請假與補課紀錄</h2>
-            <button onClick={addRecord} className="hand-drawn-btn px-6 py-2 flex items-center gap-2">
-              <Plus className="w-5 h-5" /> 登記請假
-            </button>
+            
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              {/* 新增的備份與匯入按鈕 */}
+              <button onClick={handleExport} className="text-xs font-bold text-[#b0a090] border-2 border-[#e6d5c3] bg-white px-3 py-1.5 rounded-xl hover:bg-[#fffaf0] transition-colors flex items-center gap-1.5">
+                <Download className="w-4 h-4" /> 備份紀錄
+              </button>
+              <label className="text-xs font-bold text-[#b0a090] border-2 border-[#e6d5c3] bg-white px-3 py-1.5 rounded-xl hover:bg-[#fffaf0] transition-colors flex items-center gap-1.5 cursor-pointer">
+                <UploadIcon className="w-4 h-4" /> 匯入紀錄
+                <input type="file" accept=".json" className="hidden" onChange={handleImport} />
+              </label>
+              
+              <button onClick={addRecord} className="hand-drawn-btn px-4 py-2 flex items-center gap-1 ml-auto sm:ml-2 text-sm">
+                <Plus className="w-4 h-4" /> 登記請假
+              </button>
+            </div>
           </div>
 
           <div className="space-y-5">
@@ -269,7 +311,7 @@
             )}
           </div>
 
-          <div className="mt-12 text-center">
+          <div className="mt-12 flex flex-col sm:flex-row justify-center items-center gap-6">
             <button onClick={clearAll} className="text-sm font-bold text-[#b0a090] hover:text-[#b56576] underline underline-offset-4 transition-colors">
               🧹 新的一期開始了！點此清空所有調課紀錄與額度
             </button>
