@@ -1,14 +1,18 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>酥酥老師教務大廳</title>
+  <title>酥酥老師薪資結算小幫手</title>
+  
+  <!-- 引入繁體中文圓體 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;900&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <style>
     /* 強制全面套用繁體中文圓體，解決「酥」字缺字變宋體的問題 */
@@ -468,12 +472,9 @@
               </div>
             </div>
             
-            {}
             <div className="mt-8 flex flex-col items-center justify-center text-[#8c7361] space-y-3 pb-8">
               <div className="relative group cursor-pointer">
                 <div className="absolute inset-0 bg-[#d98c73] rounded-full blur opacity-20 group-hover:opacity-40 transition-opacity duration-300"></div>
-                {/* 
-                */}
                 <img 
                   src="https://i.ibb.co/pB0FK9h1/Chat-GPT-Image-2026-7-13-09-32-14.png" 
                   alt="酥酥老師 Logo" 
@@ -492,7 +493,6 @@
             </div>
           </div>
 
-          {}
           {activeModal === 'text' && (
             <div className="fixed inset-0 bg-[#4a3f35]/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
               <div className="bg-[#fcfbf9] rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200 border border-[#ece8e0]">
@@ -549,7 +549,6 @@
       );
     }
 
-    // --- 錯誤偵測邊界 (防護網) ---
     class ErrorBoundary extends React.Component {
       constructor(props) {
         super(props);
