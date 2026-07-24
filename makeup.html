@@ -4,78 +4,36 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>酥酥老師調課追蹤板</title>
+  <title>酥酥老師教務大廳</title>
   
-   <!-- 引入日系圓潤字體與 Tailwind CSS -->
+  <!-- 引入 Google Fonts 日系手繪圓體 (Zen Maru Gothic & M PLUS Rounded 1c) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;900&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;900&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.6/babel.min.js"></script>
 
   <style>
-    /* 1. 定義並載入專屬字體 (加上 ?v=1 強制破除快取) */
-@font-face {
-    font-family: 'SusuCustomFont'; 
-    /* 請把下方引號內的網址換成你剛剛從 GitHub「Raw」複製的真實網址 */
-    src: url('https://github.com/Vanessa01210/tutor_tool/raw/refs/heads/main/susu-font.ttf.ttf') format('truetype'); 
-    font-weight: normal;
-    font-style: normal;
-    font-display: swap;
-  }
-
-    /* 2. 強制將字體套用到整個網頁的所有元素 */
+    /* 直接全站套用日系手繪圓體，再也不用管繁雜的檔案路徑！ */
     body, * {
-      font-family: 'SusuCustomFont', 'M PLUS Rounded 1c', 'Noto Sans TC', sans-serif !important;
+      font-family: 'Zen Maru Gothic', 'M PLUS Rounded 1c', sans-serif !important;
     }
-
-    /* 專屬日系手繪風 CSS */
+    
+    /* 你的其他排版樣式保持不變... */
     body {
-      background-color: #fffaf0; /* 溫暖紙張色 */
-      color: #5c4a40; /* 柔和深咖啡色 */
+      background-color: #fffaf0;
+      color: #5c4a40;
+      background-image: radial-gradient(#e6d5c3 1.5px, transparent 1.5px);
+      background-size: 24px 24px;
     }
     .hand-drawn-box {
       background: #ffffff;
       border: 3px solid #5c4a40;
-      /* 製造微不規則的手繪感圓角 */
       border-radius: 16px 24px 16px 24px; 
       box-shadow: 6px 6px 0px #e6d5c3;
       transition: all 0.3s ease;
+      position: relative;
     }
-    .hand-drawn-box:hover {
-      box-shadow: 8px 8px 0px #d4baa0;
-    }
-    .hand-drawn-btn {
-      background: #f4e3c5;
-      border: 2px dashed #5c4a40;
-      border-radius: 12px 20px 12px 20px;
-      color: #5c4a40;
-      font-weight: bold;
-      box-shadow: 3px 3px 0px #5c4a40;
-      transition: all 0.15s ease;
-      cursor: pointer;
-    }
-    .hand-drawn-btn:active {
-      box-shadow: 0px 0px 0px #5c4a40;
-      transform: translate(3px, 3px);
-    }
-    .hand-drawn-input {
-      border: 2px solid #d4baa0;
-      border-radius: 10px 14px 10px 14px;
-      background: #fffdf9;
-    }
-    .hand-drawn-input:focus {
-      outline: none;
-      border-color: #5c4a40;
-      background: #ffffff;
-    }
-    
-    /* 標籤顏色 */
-    .tag-pending { background: #ffe4e1; border: 2px solid #e5989b; color: #b56576; }
-    .tag-scheduled { background: #fff3cd; border: 2px solid #f4a261; color: #d08c60; }
-    .tag-completed { background: #d8f3dc; border: 2px solid #74c69d; color: #40916c; }
+    /* ...後面接你原本的 CSS ... */
   </style>
 </head>
 <body>
