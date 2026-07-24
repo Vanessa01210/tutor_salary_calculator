@@ -5,35 +5,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>酥酥老師教務大廳</title>
-  
-  <!-- 引入 Google Fonts 日系手繪圓體 (Zen Maru Gothic & M PLUS Rounded 1c) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;900&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;900&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
-    /* 直接全站套用日系手繪圓體，再也不用管繁雜的檔案路徑！ */
+    /* 強制全面套用繁體中文圓體，解決「酥」字缺字變宋體的問題 */
     body, * {
-      font-family: 'Zen Maru Gothic', 'M PLUS Rounded 1c', sans-serif !important;
+      font-family: 'M PLUS Rounded 1c', 'Noto Sans TC', sans-serif !important;
     }
-    
-    /* 你的其他排版樣式保持不變... */
-    body {
-      background-color: #fffaf0;
-      color: #5c4a40;
-      background-image: radial-gradient(#e6d5c3 1.5px, transparent 1.5px);
-      background-size: 24px 24px;
-    }
-    .hand-drawn-box {
-      background: #ffffff;
-      border: 3px solid #5c4a40;
-      border-radius: 16px 24px 16px 24px; 
-      box-shadow: 6px 6px 0px #e6d5c3;
-      transition: all 0.3s ease;
-      position: relative;
-    }
-    /* ...後面接你原本的 CSS ... */
   </style>
 </head>
 <body class="bg-[#f7f3ec]">
